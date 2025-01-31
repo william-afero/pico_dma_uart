@@ -7,19 +7,25 @@
 
 #include <dma_uart.hpp>
 
-DmaUart::DmaUart(uart_inst_t* uart, uint baudrate)
+int kUartRxChannel = 50;
+int kUartTxChannel = 50;
+
+DmaUart::DmaUart(uart_inst_t* uart, uint baudrate, int rx_gpio, int tx_gpio)
     : uart_(uart),
       rx_user_index_(0),
       rx_dma_index_(0),
       tx_user_index_(0),
       tx_dma_index_(0) {
-  init_uart(uart_, baudrate);
+
+  kUartRxChannel = dma_claim_unused_channel(true);
+  kUartTxChannel = dma_claim_unused_channel(true);
+  init_uart(uart_, baudrate,  rx_gpio,  tx_gpio);
   init_dma();
 }
 
-void DmaUart::init_uart(uart_inst_t* uart, uint baudrate) {
-  gpio_set_function(kUartTxPin, GPIO_FUNC_UART);
-  gpio_set_function(kUartRxPin, GPIO_FUNC_UART);
+void DmaUart::init_uart(uart_inst_t* uart, uint baudrate, int rx_gpio, int tx_gpio) {
+  gpio_set_function(tx_gpio, GPIO_FUNC_UART);
+  gpio_set_function(rx_gpio, GPIO_FUNC_UART);
   uart_init(uart, baudrate);
 }
 
@@ -39,10 +45,10 @@ void DmaUart::init_dma() {
   channel_config_set_enable(&rx_config, true);
   dma_channel_configure(kUartRxChannel, &rx_config, rx_buffer_, &uart0_hw->dr,
                         kRxBuffLength, true);
-  dma_channel_set_irq0_enabled(kUartRxChannel, true);
+  dma_channel_set_irq1_enabled(kUartRxChannel, true);
 
-  irq_set_exclusive_handler(DMA_IRQ_0, dma_irq_handler);
-  irq_set_enabled(DMA_IRQ_0, true);
+  irq_set_exclusive_handler(DMA_IRQ_1, dma_irq_handler);
+  irq_set_enabled(DMA_IRQ_1, true);
 
   /// DMA uart write
   dma_channel_config tx_config = dma_channel_get_default_config(kUartTxChannel);

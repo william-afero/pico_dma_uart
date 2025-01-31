@@ -2,14 +2,10 @@
 #pragma once
 #include <hardware/uart.h>
 
-constexpr uint8_t kRxBuffLengthPow = 5;
-constexpr uint8_t kTxBuffLengthPow = 5;
-constexpr uint16_t kRxBuffLength = 1 << (kRxBuffLengthPow);
-constexpr uint16_t kTxBuffLength = 1 << (kTxBuffLengthPow);
-constexpr int kUartRxChannel = 0;
-constexpr int kUartTxChannel = 1;
-constexpr int kUartTxPin = 0;
-constexpr int kUartRxPin = 1;
+const uint8_t kRxBuffLengthPow = 7;
+const uint8_t kTxBuffLengthPow = 7;
+const uint16_t kRxBuffLength = 1 << (kRxBuffLengthPow);
+const uint16_t kTxBuffLength = 1 << (kTxBuffLengthPow);
 
 class DmaUart {
  private:
@@ -26,7 +22,7 @@ class DmaUart {
   uint16_t tx_dma_index_;  // next index dma will read 
 
  public:
-  DmaUart(uart_inst_t* uart, uint baudrate);
+  DmaUart(uart_inst_t* uart, uint baudrate, int rx_gpio, int tx_gpio);
   uint16_t write(const uint8_t* data, uint16_t length);
   void flush();
   void write_and_flush(const uint8_t* data, uint16_t length);
@@ -35,7 +31,6 @@ class DmaUart {
   uint16_t read_all(uint8_t* data);
   
  private:
-  void init_uart(uart_inst_t* uart, uint baudrate);
+  void init_uart(uart_inst_t* uart, uint baudrate, int rx_gpio, int tx_gpio);
   void init_dma();
-  
 };
